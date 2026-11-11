@@ -3,9 +3,16 @@
 
 DroidParadeMaster master;
 
+// Muss auf Master und allen Droiden identisch sein. Eigenes Secret wählen und geheim halten!
+const DroidParadeConfig paradeConfig = {
+  /* paradeId */ 0x0001,
+  /* secret   */ "BITTE-AENDERN-geheimes-Passwort",
+  /* channel  */ 1
+};
+
 void setup() {
   Serial.begin(115200);
-  if (!master.begin(1)) Serial.println("ESP-NOW Init fehlgeschlagen");  // Kanal 1
+  if (!master.begin(paradeConfig)) Serial.println("ESP-NOW Init fehlgeschlagen");
 }
 
 void loop() {

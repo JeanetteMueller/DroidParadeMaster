@@ -14,7 +14,12 @@ static void onSent(const uint8_t *, esp_now_send_status_t s) {
   DroidParadeMaster::_notify(s == ESP_NOW_SEND_SUCCESS);
 }
 
-bool DroidParadeMaster::begin(uint8_t channel) {
+bool DroidParadeMaster::begin(const DroidParadeConfig &config) {
+  if (!config.secret || strlen(config.secret) < 8) return false;
+  uint8_t channel = config.channel;
+  _secret = config.secret;
+  _paradeId = config.paradeId;
+  _seq = esp_random();  // zufälliger Start: Neustart wird vom Slave akzeptiert
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
@@ -33,8 +38,9 @@ bool DroidParadeMaster::begin(uint8_t channel) {
 
 bool DroidParadeMaster::send() {
   if (!_ready) return false;
+  _p.paradeId = _paradeId;
   _p.sequence = ++_seq;
-  droidParadeSeal(_p);
+  droidParadeSeal(_p, _secret);
   static const uint8_t bcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
   return esp_now_send(bcast, (const uint8_t *)&_p, sizeof(_p)) == ESP_OK;
 }

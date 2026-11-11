@@ -8,8 +8,8 @@
 
 class DroidParadeMaster {
 public:
-  // Initialisiert WiFi (STA) und ESP-NOW; channel 1..13. true bei Erfolg.
-  bool begin(uint8_t channel = 1);
+  // Initialisiert WiFi (STA) und ESP-NOW. false bei leerem/zu kurzem Secret oder Fehler.
+  bool begin(const DroidParadeConfig &config);
 
   // Setter (Nummern 1-basiert wie in den Parameternamen)
   void setBodyLeft(uint8_t n, bool on)    { _p.bodyLeft = withBit(_p.bodyLeft, n, DP_BODY_LEFT_COUNT, on); }
@@ -36,7 +36,9 @@ private:
     return on ? (mask | (1UL << (n - 1))) : (mask & ~(1UL << (n - 1)));
   }
   DroidParadePacket _p = {};
-  uint16_t _seq = 0;
+  uint32_t _seq = 0;
+  const char *_secret = nullptr;
+  uint16_t _paradeId = 0;
   bool _ready = false;
   static volatile bool _lastOk;
 };

@@ -9,7 +9,7 @@ Sender-Bibliothek des **Droid Parade**-Systems. Der Master sammelt alle Steuerda
 #include <DroidParadeMaster.h>
 DroidParadeMaster master;
 
-void setup() { master.begin(1); }   // WLAN-Kanal 1; muss mit den Slaves übereinstimmen
+void setup() { master.begin(paradeConfig); }   // Config siehe unten
 
 void loop() {
   master.setBodyLeft(1, true);      // Nummern 1-basiert
@@ -20,7 +20,23 @@ void loop() {
 }
 ```
 
+## Zugehörigkeit & Sicherheit
+Master und Droiden teilen eine `DroidParadeConfig`:
+
+```cpp
+const DroidParadeConfig paradeConfig = {
+  /* paradeId */ 0x0001,                     // öffentliche Kennung der Parade
+  /* secret   */ "mein-geheimes-passwort",   // mind. 8 Zeichen, geheim halten
+  /* channel  */ 1                           // WLAN-Kanal
+};
+```
+
+- Jedes Paket trägt die `paradeId` und ist mit einem gekürzten HMAC-SHA256 über das `secret` signiert.
+- Pakete mit anderer Parade-ID, falscher Signatur oder alter Sequenznummer (Replay) werden verworfen (`packetsRejected()`).
+- `begin()` liefert `false`, wenn das Secret fehlt oder kürzer als 8 Zeichen ist.
+- Die Pakete sind signiert, aber **nicht verschlüsselt**; das Secret darf nicht ins öffentliche Repo.
+
 ## API
-`begin(channel)`, `setBodyLeft(n, bool)`, `setBodyRight(n, bool)`, `setBodyCenter(n, bool)`, `setBodyArms(bool)`, `setDomeRotation(int)`, `setDome(n, bool)`, `setSpecialAction(n, bool)`, `setLightProp(prop)`, `setLightColor(uint32_t)`, `clearAll()`, `send()`, `lastSendOk()`.
+`begin(config)`, `setBodyLeft(n, bool)`, `setBodyRight(n, bool)`, `setBodyCenter(n, bool)`, `setBodyArms(bool)`, `setDomeRotation(int)`, `setDome(n, bool)`, `setSpecialAction(n, bool)`, `setLightProp(prop)`, `setLightColor(uint32_t)`, `clearAll()`, `send()`, `lastSendOk()`.
 
 Das Paket wird per Broadcast an alle Droiden gesendet. Beispiel: `examples/MasterBasic`.
